@@ -222,7 +222,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == "balance":
         await balance_cmd(update, context)
     elif query.data == "help":
-        # ✅ FIX: Yahan 'update.message' ki jagah 'query.message' use kiya hai
+        # ✅ FIX: 'update.message' ki jagah 'query.message' use kiya hai
         await query.message.reply_text(HELP_MESSAGE, parse_mode='Markdown')
 
 # ============ MAIN ============
@@ -263,8 +263,7 @@ def main():
         return "Bot is running!"
 
     def run_flask():
-        # Render ka default port 10000 hota hai, lekin tum 8080 use kar rahe ho. 
-        # Render environment variable 'PORT' use karta hai, isliye use karo:
+        # Render ka PORT variable use karo, agar nahi hai toh 8080
         port = int(os.environ.get('PORT', 8080))
         flask_app.run(host='0.0.0.0', port=port)
 
@@ -275,7 +274,8 @@ def main():
     # 🚀 RENDER PORT 8080 FIX END
     # ==========================================
 
-    app.run_polling()
+    # ⚡ 100% Fix: Purane instance ka data clear karke naya start hoga
+    app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
     main()
