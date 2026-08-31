@@ -66,29 +66,22 @@ async def generate(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text("🔄 Generating .edu email... Please wait 2-5 minutes.")
 
-    result = generator.generate()
+    # ⚠️ YAHAN BACKGROUND THREADING ADD KARO
+    import threading
 
-    if result['status'] == 'success':
-        db.update_balance(user_id, -price)
-        db.add_email(user_id, result['email'], result['password'], result['student_id'])
+    def background_generation():
+        result = generator.generate()
+        if result['status'] == 'success':
+            db.update_balance(user_id, -price)
+            db.add_email(user_id, result['email'], result['password'], result['student_id'])
+            # Yahan user ko DM karo (context bot object use karna hoga)
+            # context.bot.send_message(chat_id=user_id, text=...)
+        else:
+            # Error response bhejna ho toh yahan bhejo
+            pass
 
-        message = f"""
-🎓 **.EDU EMAIL GENERATED!**
-
-📧 `{result['email']}`
-🔑 `{result['password']}`
-🆔 `{result['student_id']}`
-👤 {result['full_name']}
-
-🔗 Login: https://mylu.liberty.edu
-💰 Balance Deducted: ${price:.2f}
-💳 Remaining: ${(balance - price):.2f}
-
-🔒 100% anonymous - No user data stored
-"""
-        await update.message.reply_text(message, parse_mode='Markdown')
-    else:
-        await update.message.reply_text(f"❌ Failed: {result.get('error', 'Unknown error')}")
+    threading.Thread(target=background_generation).start()
+    return
 
 async def status_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -250,7 +243,7 @@ def main():
     print("🤖 Bot is running...")
 
     # ==========================================
-    # 🚀 RENDER PORT 8080 FIX (YE NAYA CODE HAI)
+    # 🚀 FLASK SERVER (WEB SERVICE FIX)
     # ==========================================
     import threading
     import os
@@ -263,7 +256,6 @@ def main():
         return "Bot is running!"
 
     def run_flask():
-        # Render ka PORT variable use karo, agar nahi hai toh 8080
         port = int(os.environ.get('PORT', 8080))
         flask_app.run(host='0.0.0.0', port=port)
 
@@ -271,10 +263,9 @@ def main():
     t = threading.Thread(target=run_flask)
     t.start()
     # ==========================================
-    # 🚀 RENDER PORT 8080 FIX END
+    # 🚀 FLASK SERVER (WEB SERVICE FIX) END
     # ==========================================
 
-    # ⚡ 100% Fix: Purane instance ka data clear karke naya start hoga
     app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
